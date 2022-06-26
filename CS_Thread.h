@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <string.h> // memset
+#include <stdio.h>
 
 #if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
 	#define C11_THREADS
@@ -14,7 +15,7 @@
 #endif
 
 #if defined(__unix__) && !defined(C11_THREADS)
-	#define POSIX_THREADs
+	#define POSIX_THREADS
 	#include <pthread.h>
 #endif
 
@@ -33,7 +34,7 @@ typedef struct CS_Thread
 #ifdef WIN32_THREADS
 	HANDLE thread_handle;
 #endif
-#ifdef POSIX_THREADs
+#ifdef POSIX_THREADS
 	pthread_t thread_handle;
 #endif
 
@@ -51,7 +52,7 @@ inline char cst_create(CS_Thread* thread)
 	assert(thread->function != 0);
 
 #ifdef C11_THREADS
-	if (thrd_create(thread->thread_handle, thread->function, thread->args) != thrd_success)
+	if (thrd_create(&thread->thread_handle, thread->function, thread->args) != thrd_success)
 		return 1;
 	return 0;
 #endif
@@ -63,7 +64,7 @@ inline char cst_create(CS_Thread* thread)
 	return 1;
 #endif
 #ifdef POSIX_THREADS
-	if (pthread_create(thread->thread_handle, 0, thread->function, thread->args))
+	if (pthread_create(&thread->thread_handle, 0, thread->function, thread->args))
 		return 1;
 	return 0;
 #endif
@@ -141,6 +142,6 @@ inline void cst_exit(int ret)
 	ExitThread(ret);
 #endif
 #ifdef POSIX_THREADS
-	pthread_exit(ret);
+	pthread_exit((void*)ret);
 #endif
 }

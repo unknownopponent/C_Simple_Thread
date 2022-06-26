@@ -1,13 +1,48 @@
 
 #include "../CS_Thread.h"
+#include "../CS_Mutex.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
-void dummy_thread_write(int* location)
+typedef struct Dummy
 {
-	*location = 1;
+	CS_Mutex mutex;
+	int test1;
+	int test2;
 
-	cst_exit(2);
+} Dummy;
+
+void dummy_thread_write(Dummy* dummy)
+{
+
+	if (!csm_try_lock(&dummy->mutex))
+	{
+		char* str = "failled to try lock in thread mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
+		exit(1);
+	}
+
+	dummy->test1 = 1;
+
+	if (csm_lock(&dummy->mutex))
+	{
+		dummy->test2 = 3;
+		cst_exit(3);
+	}
+
+	dummy->test2 = 4;
+
+	if (csm_unlock(&dummy->mutex))
+	{
+		char* str = "failled to unlock in thread mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
+		exit(1);
+	}
+
+	puts("thread exit normally");
+
+	cst_exit(4);
 }
 
 int main(void)
@@ -22,7 +57,21 @@ int main(void)
 	puts("using POSIX threads");
 #endif
 
-	int test = 0;
+	Dummy test = { 0 };
+
+	if (csm_create(&test.mutex))
+	{
+		char* str = "failled to create mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
+		return 1;
+	}
+
+	if (csm_lock(&test.mutex))
+	{
+		char* str = "failled to lock mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
+		return 1;
+	}
 
 	CS_Thread thread = { 0 };
 	thread.function = dummy_thread_write;
@@ -35,6 +84,16 @@ int main(void)
 		return 1;
 	}
 
+	while (!test.test1)
+		;
+
+	if (csm_unlock(&test.mutex))
+	{
+		char* str = "failled to unlock mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
+		exit(1);
+	}
+
 	int ret = 0;
 
 	if (cst_join(&thread, &ret))
@@ -44,15 +103,27 @@ int main(void)
 		return 1;
 	}
 
-	if (test != 1)
+	if (test.test1 != 1)
 	{
-		fprintf(stderr, "wrong value in memory %d, 1 expected\n", test);
+		fprintf(stderr, "wrong value in memory %d, 1 expected\n", test.test1);
+		return 1;
+	}
+	if (test.test2 != 4)
+	{
+		char* str = "thread failled to lock mutex\n";
+		fwrite(str, sizeof(char), strlen(str), stderr);
 		return 1;
 	}
 
-	if (ret != 2)
+	if (ret != 4)
 	{
-		fprintf(stderr, "wrong return code %d, 2 expected\n", ret);
+		fprintf(stderr, "wrong return code %d, 4 expected\n", ret);
+		return 1;
+	}
+
+	if (csm_destroy(&test.mutex))
+	{
+		puts("failled to destroy mutex");
 		return 1;
 	}
 
