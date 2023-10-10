@@ -2,26 +2,9 @@
 
 #include <assert.h>
 #include <string.h> // memset
-#include <stdio.h>
+#include <stdint.h> // intptr_t
 
-#if __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
-	#define C11_THREADS
-	#include <threads.h>
-#endif
-
-#if defined(_WIN32) && !defined(C11_THREADS)
-	#define WIN32_THREADS
-	#include <windows.h>
-#endif
-
-#if defined(__unix__) && !defined(C11_THREADS)
-	#define POSIX_THREADS
-	#include <pthread.h>
-#endif
-
-#if !defined(C11_THREADS) && !defined(_WIN32) && !defined(__unix__)
-	#error no thread implementation available
-#endif
+#include "common.h"
 
 typedef struct CS_Thread
 {
@@ -52,21 +35,15 @@ inline char cst_create(CS_Thread* thread)
 	assert(thread->function != 0);
 
 #ifdef C11_THREADS
-	if (thrd_create(&thread->thread_handle, thread->function, thread->args) != thrd_success)
-		return 1;
-	return 0;
+	return thrd_create(&thread->thread_handle, thread->function, thread->args) != thrd_success;
 #endif
 #ifdef WIN32_THREADS
 	thread->thread_handle = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)thread->function, thread->args, 0, 0);
 
-	if (thread->thread_handle)
-		return 0;
-	return 1;
+	return thread->thread_handle == 0;
 #endif
 #ifdef POSIX_THREADS
-	if (pthread_create(&thread->thread_handle, 0, thread->function, thread->args))
-		return 1;
-	return 0;
+	return pthread_create(&thread->thread_handle, 0, thread->function, thread->args);
 #endif
 }
 
@@ -78,11 +55,10 @@ inline char cst_join(CS_Thread* thread, int* return_code)
 	int res = thrd_join(thread->thread_handle, return_code);
 	if (res != thrd_success)
 	{
-		assert(0);
 		return 1;
 	}
 
-	memset(&thread->thread_handle, '\0', sizeof(thrd_t));
+	memset(&thread->thread_handle, 0, sizeof(thrd_t));
 
 	return 0;
 #endif
@@ -91,7 +67,6 @@ inline char cst_join(CS_Thread* thread, int* return_code)
 	DWORD res = WaitForSingleObject(thread->thread_handle, INFINITE);
 	if (res)
 	{
-		assert(0);
 		return 1;
 	}
 
@@ -99,18 +74,16 @@ inline char cst_join(CS_Thread* thread, int* return_code)
 	BOOL res2 = GetExitCodeThread(thread->thread_handle, &ret);
 	if (!res2)
 	{
-		assert(0);
 		return 1;
 	}
 
 	res2 = CloseHandle(thread->thread_handle);
-	if (res)
+	if (!res2)
 	{
-		assert(0);
 		return 1;
 	}
 
-	memset(&thread->thread_handle, '\0', sizeof(HANDLE));
+	memset(&thread->thread_handle, 0, sizeof(HANDLE));
 
 	*return_code = (int)ret;
 
@@ -121,13 +94,12 @@ inline char cst_join(CS_Thread* thread, int* return_code)
 	int res = pthread_join(thread->thread_handle, &ret);
 	if (res)
 	{
-		assert(0);
 		return 1;
 	}
 
-	memset(&thread->thread_handle, '\0', sizeof(pthread_t));
+	memset(&thread->thread_handle, 0, sizeof(pthread_t));
 
-	*return_code = (int)ret;
+	*return_code = (int)(intptr_t)ret;
 
 	return 0;
 #endif
@@ -142,6 +114,6 @@ inline void cst_exit(int ret)
 	ExitThread(ret);
 #endif
 #ifdef POSIX_THREADS
-	pthread_exit((void*)ret);
+	pthread_exit((void*)(intptr_t)ret);
 #endif
 }

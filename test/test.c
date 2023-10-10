@@ -1,6 +1,6 @@
 
-#include "../CS_Thread.h"
-#include "../CS_Mutex.h"
+#include "CS_Thread.h"
+#include "CS_Mutex.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +53,7 @@ int main(void)
 #ifdef WIN32_THREADS
 	puts("using WIN32 threads");
 #endif
-#ifdef POSIX_THREADs
+#ifdef POSIX_THREADS
 	puts("using POSIX threads");
 #endif
 
