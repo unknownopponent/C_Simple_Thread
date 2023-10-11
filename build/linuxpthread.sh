@@ -8,7 +8,7 @@ then
 	exit 1
 fi
 
-./test.exe
+./test
 
 if [ $? -ne 0 ]
 then

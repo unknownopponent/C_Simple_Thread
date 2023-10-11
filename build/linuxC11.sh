@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gcc -std=c11 -I ../src/ ../test/test.c -o test -pthread
+gcc -std=c11 -I ../src/ ../test/test.c -o test -pthread -g
 
 if [ $? -ne 0 ]
 then
@@ -8,7 +8,7 @@ then
 	exit 1
 fi
 
-./test.exe
+./test
 
 if [ $? -ne 0 ]
 then
