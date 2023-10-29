@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gcc -D NO_C11_THREADS -pthread -I ../src/ ../test/test.c -o test
+gcc -D NO_C11_THREADS -pthread -I ../src/ ../src/*.c ../test/test.c -o test
 
 if [ $? -ne 0 ]
 then

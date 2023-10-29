@@ -6,7 +6,9 @@
 	#include <unistd.h>
 #endif
 
-int cs_cpu_thread_count()
+static inline int cs_cpu_thread_count();
+
+static inline int cs_cpu_thread_count()
 {
 #ifdef _WIN32
 	SYSTEM_INFO infos = {0};

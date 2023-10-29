@@ -15,14 +15,14 @@ typedef struct CS_Mutex
 #endif
 } CS_Mutex;
 
-char csm_create(CS_Mutex* mutex);
-char csm_destroy(CS_Mutex* mutex);
+static inline char csm_create(CS_Mutex* mutex);
+static inline char csm_destroy(CS_Mutex* mutex);
 
-char csm_lock(CS_Mutex* mutex);
-char csm_try_lock(CS_Mutex* mutex);
-char csm_unlock(CS_Mutex* mutex);
+static inline char csm_lock(CS_Mutex* mutex);
+static inline char csm_try_lock(CS_Mutex* mutex);
+static inline char csm_unlock(CS_Mutex* mutex);
 
-inline char csm_create(CS_Mutex* mutex)
+static inline char csm_create(CS_Mutex* mutex)
 {
 #ifdef C11_THREADS
 	return mtx_init(&mutex->mutex_handle, mtx_plain) != thrd_success;
@@ -36,7 +36,7 @@ inline char csm_create(CS_Mutex* mutex)
 #endif
 }
 
-inline char csm_destroy(CS_Mutex* mutex)
+static inline char csm_destroy(CS_Mutex* mutex)
 {
 #ifdef C11_THREADS
 	mtx_destroy(&mutex->mutex_handle);
@@ -55,7 +55,7 @@ inline char csm_destroy(CS_Mutex* mutex)
 #endif
 }
 
-inline char csm_lock(CS_Mutex* mutex)
+static inline char csm_lock(CS_Mutex* mutex)
 {
 #ifdef C11_THREADS
 	return mtx_lock(&mutex->mutex_handle) != thrd_success;
@@ -68,7 +68,7 @@ inline char csm_lock(CS_Mutex* mutex)
 #endif
 }
 
-inline char csm_try_lock(CS_Mutex* mutex)
+static inline char csm_try_lock(CS_Mutex* mutex)
 {
 #ifdef C11_THREADS
 	return mtx_trylock(&mutex->mutex_handle) != thrd_success;
@@ -81,7 +81,7 @@ inline char csm_try_lock(CS_Mutex* mutex)
 #endif
 }
 
-char csm_unlock(CS_Mutex* mutex)
+static inline char csm_unlock(CS_Mutex* mutex)
 {
 #ifdef C11_THREADS
 	return mtx_unlock(&mutex->mutex_handle) != thrd_success;

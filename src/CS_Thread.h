@@ -8,7 +8,7 @@
 
 typedef struct CS_Thread
 {
-	void(*function);
+	void(*function)(void);
 	void* args;
 
 #ifdef C11_THREADS
@@ -24,18 +24,18 @@ typedef struct CS_Thread
 } CS_Thread;
 
 
-char cst_create(CS_Thread* thread);
-char cst_join(CS_Thread* thread, int* return_code);
+static inline char cst_create(CS_Thread* thread);
+static inline char cst_join(CS_Thread* thread, int* return_code);
 
-void cst_exit(int ret);
+static inline void cst_exit(int ret);
 
 
-inline char cst_create(CS_Thread* thread)
+static inline char cst_create(CS_Thread* thread)
 {
 	assert(thread->function != 0);
 
 #ifdef C11_THREADS
-	return thrd_create(&thread->thread_handle, thread->function, thread->args) != thrd_success;
+	return thrd_create(&thread->thread_handle, (void*)thread->function, thread->args) != thrd_success;
 #endif
 #ifdef WIN32_THREADS
 	thread->thread_handle = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)thread->function, thread->args, 0, 0);
@@ -43,11 +43,11 @@ inline char cst_create(CS_Thread* thread)
 	return thread->thread_handle == 0;
 #endif
 #ifdef POSIX_THREADS
-	return pthread_create(&thread->thread_handle, 0, thread->function, thread->args);
+	return pthread_create(&thread->thread_handle, 0, (void*)thread->function, thread->args);
 #endif
 }
 
-inline char cst_join(CS_Thread* thread, int* return_code)
+static inline char cst_join(CS_Thread* thread, int* return_code)
 {
 	assert(thread->thread_handle);
 
@@ -105,7 +105,7 @@ inline char cst_join(CS_Thread* thread, int* return_code)
 #endif
 }
 
-inline void cst_exit(int ret)
+static inline void cst_exit(int ret)
 {
 #ifdef C11_THREADS
 	thrd_exit(ret);

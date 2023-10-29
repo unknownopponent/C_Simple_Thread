@@ -7,9 +7,9 @@
 #include <time.h>
 #endif
 
-char cs_sleep_seconds(double seconds);
+static inline char cs_sleep_seconds(double seconds);
 
-inline char cs_sleep_seconds(double seconds)
+static inline char cs_sleep_seconds(double seconds)
 {
 #ifdef __linux__
 	struct timespec ts = {0};

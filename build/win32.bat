@@ -1,7 +1,7 @@
 
 @echo off
 
-gcc -D NO_C11_THREADS -I ../src/ ../test/test.c -o test.exe
+gcc -D NO_C11_THREADS -I ../src/ ../src/*.c ../test/test.c -o test.exe
 
 if %errorlevel% neq 0 (
 	echo failled to build

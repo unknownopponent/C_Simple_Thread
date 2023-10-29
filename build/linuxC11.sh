@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gcc -std=c11 -I ../src/ ../test/test.c -o test -pthread -g
+gcc -std=c11 -I ../src/ ../src/*.c ../test/test.c -o test -pthread
 
 if [ $? -ne 0 ]
 then
