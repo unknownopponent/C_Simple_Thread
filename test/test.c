@@ -323,9 +323,21 @@ char test_thread_pool()
 		return 1;
 	}
 
+	if (cstp_lock_output_queue(&pool))
+	{
+		print_error("thread pool output queue lock failled\n");
+		return 1;
+	}
+
 	if (cstp_wait_all_output_queue(&pool))
 	{
 		print_error("thread pool wait all output queue failled\n");
+		return 1;
+	}
+
+	if (cstp_unlock_output_queue(&pool))
+	{
+		print_error("thread pool output queue unlock failled\n");
 		return 1;
 	}
 

@@ -331,11 +331,6 @@ char cstp_wait_output_queue(CS_ThreadPool* pool)
 {
 	do
 	{
-		if (cscv_wait(&pool->wait_output))
-		{
-			return 1;
-		}
-		
 		for (size_t i=0; i<pool->output_allocated_count; i++)
 		{
 			if (pool->outputs[i].active)
@@ -343,6 +338,12 @@ char cstp_wait_output_queue(CS_ThreadPool* pool)
 				return 0;
 			}
 		}
+		
+		if (cscv_wait(&pool->wait_output))
+		{
+			return 1;
+		}
+		
 	} while (1);
 }
 
@@ -363,6 +364,12 @@ char cstp_wait_all_output_queue(CS_ThreadPool* pool)
 		{
 			return 0;
 		}
+		
+		if (cscv_wait(&pool->wait_output))
+		{
+			return 1;
+		}
+		
 	} while (1);
 }
 
